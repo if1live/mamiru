@@ -5,6 +5,9 @@ import logging
 from asyncore import file_dispatcher, loop
 from evdev import InputDevice, categorize, ecodes, events
 from mpd import MPDClient
+import signal
+import sys
+
 
 def create_logger():
     logger = logging.getLogger('kyoko')
@@ -102,10 +105,18 @@ class InputDeviceDispatcher(file_dispatcher):
             if event.code in command_dict:
                 cmd = command_dict[event.code]
                 cmd()
+
             
+# http://danielkaes.wordpress.com/2009/06/04/how-to-catch-kill-events-with-python/
+def signal_handler(signal, frame):
+    mpd_helper.disconnect(mpd_client)
+    sys.exit(0)
+signal.signal(signal.SIGTERM, signal_handler)
+
 
 try:
     InputDeviceDispatcher(dev)
     loop()
 except KeyboardInterrupt:
     mpd_helper.disconnect(mpd_client)
+
