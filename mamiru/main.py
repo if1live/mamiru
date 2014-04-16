@@ -4,39 +4,18 @@
 import logging
 from asyncore import file_dispatcher, loop
 from evdev import InputDevice, categorize, ecodes, events
-import signal
 import sys
+from . import config
+from .commands import CommandFactory
 
+def create_command_dict(keylist):
+    command_dict = {}
+    factory = CommandFactory()
+    for key, cmd_cls in keylist.items():
+        cmd = factory.create_cmd(cmd_cls)
+        command_dict[key] = cmd
+    return command_dict
 
-def create_logger():
-    logger = logging.getLogger('kyoko')
-    logger.setLevel(logging.INFO)
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
-    # create formatter and add it to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    ch.setFormatter(formatter)
-    # add the handlers to logger
-    logger.addHandler(ch)
-
-    return logger
-
-logger = create_logger()
-
-# create singleton
-mpd_helper = MPDClientHelper()
-mpd_client = mpd_helper.create()
-mpd_helper.connect(mpd_client)
-
-
-
-
-
-command_dict = {
-    ecodes.KEY_Q: MPDPlayCommand(mpd_client),
-    ecodes.KEY_W: MPDPauseCommand(mpd_client),
-    ecodes.KEY_E: MPDNextCommand(mpd_client)
-}
 
 # TODO: if /dev/input/event0 is not keyboard...
 dev = InputDevice('/dev/input/event0')
@@ -61,17 +40,7 @@ class InputDeviceDispatcher(file_dispatcher):
                 cmd = command_dict[event.code]
                 cmd()
 
-            
-# http://danielkaes.wordpress.com/2009/06/04/how-to-catch-kill-events-with-python/
-def signal_handler(signal, frame):
-    mpd_helper.disconnect(mpd_client)
-    sys.exit(0)
-signal.signal(signal.SIGTERM, signal_handler)
 
-
-try:
+def main():
     InputDeviceDispatcher(dev)
     loop()
-except KeyboardInterrupt:
-    mpd_helper.disconnect(mpd_client)
-
