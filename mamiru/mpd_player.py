@@ -29,6 +29,8 @@ class MPDPlayer(object):
             return True
         except AttributeError:
             return False
+        except TypeError:
+            return False
         except mpd.ConnectionError:
             return False
 
