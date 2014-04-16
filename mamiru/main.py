@@ -4,7 +4,6 @@
 import logging
 from asyncore import file_dispatcher, loop
 from evdev import InputDevice, categorize, ecodes, events
-from mpd import MPDClient
 import signal
 import sys
 
@@ -24,57 +23,13 @@ def create_logger():
 
 logger = create_logger()
 
-class MPDClientHelper(object):
-    def create(self):
-        client = MPDClient()
-        client.timeout = 10
-        client.idletimeout = None
-        return client
-
-    def connect(self, client):
-        client.connect('localhost', 6600)
-        logger.info('connect MPD')
-        return client
-
-    def disconnect(self, client):
-        client.close()
-        client.disconnect()
-        logger.info('disconnect MPD')
-        return client
-
 # create singleton
 mpd_helper = MPDClientHelper()
 mpd_client = mpd_helper.create()
 mpd_helper.connect(mpd_client)
 
 
-class Command(object):
-    def __call__(self):
-        raise NotImplementedError()
 
-class MPDPlayCommand(Command):
-    def __init__(self, client):
-        self.client = client
-
-    def __call__(self):
-        logger.info('MPD Play')
-        self.client.play()
-
-class MPDPauseCommand(Command):
-    def __init__(self, client):
-        self.client = client
-        
-    def __call__(self):
-        logger.info('MPD Pause')
-        self.client.pause()
-
-class MPDNextCommand(Command):
-    def __init__(self, client):
-        self.client = client
-
-    def __call__(self):
-        logger.info('MPD Next')
-        self.client.next()
 
 
 command_dict = {
