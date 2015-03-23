@@ -4,6 +4,14 @@ nose
 coverage
 coveralls
 nose-cov
-
+django==1.7.7
+django-debug-toolbar
+django-extensions
+django-tools
+django-nose
+django-jinja
+Jinja2
+Werkzeug
+importd
 
 
